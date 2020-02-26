@@ -5,22 +5,18 @@
 ## ICD10 CODES: I00-I99
 
 ###############################################.
-## Packages ----
+## Packages/Filepaths ----
 ###############################################.
-library(foreign) # to read SPSS data.
+
 library(dplyr) # for data manipulation
-library(ggplot2) # for plotting
 library(tidyr) # for data manipulation
-library(RcppRoll) #for moving averages
 library(readr) # writing csv's
-library(odbc) # for reading oracle databases
-library(readxl) # for reading excel
-library(rmarkdown) # for data quality checking
-library(shiny) # for data quality checking
-library(flextable) # for output tables
-library(plotly) # for data quality checking
-library(htmltools) # for data quality checking
 library(magrittr) # for other pipe operators
+
+
+pop_lookup <- "/PHI_conf/ScotPHO/HfA/Data/Lookups/Pops/"
+
+
 
 ###############################################.
 ## Functions ----
@@ -85,49 +81,76 @@ channel <- suppressWarnings(dbConnect(odbc(),  dsn="SMRA",
 
 
 # SQL query for drug deaths 2006-2018
+# Deaths for scottish residents are coded as (XS)
 circulatory_system_deaths <- tbl_df(dbGetQuery(channel, statement=
-                                                 "SELECT year_of_registration year, age, SEX sex_grp, UNDERLYING_CAUSE_OF_DEATH cod1, POSTCODE pc7, 
-                                               REGISTRATION_DISTRICT rdno, ENTRY_NUMBER entry_no
+                                              "SELECT year_of_registration year, age, SEX sex_grp, UNDERLYING_CAUSE_OF_DEATH cod1, POSTCODE pc7
                                                FROM ANALYSIS.GRO_DEATHS_C 
                                                WHERE date_of_registration between '1 January 2000' and '31 December 2018'
                                                AND age is not NULL
                                                AND sex <> 9
+                                               AND country_of_residence='XS'
                                                AND regexp_like(underlying_cause_of_death,'^I[00-99]')
                                                ")) %>%
   setNames(tolower(names(.))) %>% #variables to lower case
   create_agegroups() %>% 
   mutate(sex_grp = recode(sex_grp, "1" = "Male", "2" = "Female"))
 
+# deaths dataframe by gender 
 circulatory_system_deaths_sex <- circulatory_system_deaths %>%
   group_by(year, age_grp, sex_grp) %>% count() %>% #aggregating
   ungroup()
 
+# deaths dataframe all
 circulatory_system_deaths_all <- circulatory_system_deaths_sex %>%
   group_by(year, age_grp) %>%
   summarise(n =sum(n)) %>% mutate(sex_grp = "All") %>%
   ungroup()
 
+#combined dataframe
 circulatory_system_deaths_total <- rbind(circulatory_system_deaths_sex, 
                                          circulatory_system_deaths_all)
 
-scottish_population <- readRDS('/conf/linkage/output/lookups/Unicode/Populations/Estimates/HB2019_pop_est_1981_2018.rds') %>%
-  setNames(tolower(names(.))) %>% # variables to lower case
-  subset(year > 1999 & year <= 2018) %>%
-  rename("sex_grp" = "sex") %>%
-  mutate(sex_grp = recode(sex_grp, "1" = "Male", "2" = "Female"))
 
-scottish_population <- scottish_population %>% create_agegroups() %>%
-  group_by(age_grp, sex_grp, year) %>% 
-  summarise(pop =sum(pop)) %>% ungroup()
 
-test_deaths <- full_join(circulatory_system_deaths_sex, scottish_population, 
-                         c("year", "age_grp", "sex_grp")) %>% 
-  rename(numerator = n, denominator = pop, year = year) # numerator and denominator used for calculation
+## Section below could ultimately become part of function
 
-test_deaths <- test_deaths %>% add_epop() # EASR age group pops
+#parameters
+data_indicator <- circulatory_system_deaths_total %>%
+  rename(numerator = n)
 
-easr_circ_system_deaths <- create_rates(dataset = test_deaths, epop_total = 100000,
-                                        sex_grp = T)
+epop_total <-c(200000,100000)
 
-easr_circ_system_deaths2 <- create_rates(dataset = test_deaths, epop_total = 200000,
-                                         sex_grp = F)
+
+
+##read in population file
+pop_lookup <-readRDS("/PHI_conf/ScotPHO/HfA/Data/Lookups/Pops/scot_pop_allages.rds")
+
+
+##full join to add population
+data_indicator <- full_join(x = data_indicator, y = pop_lookup, 
+                            by = c("year", "sex_grp", "age_grp"))
+
+data_indicator <- data_indicator %>% add_epop() # EASR age group pop
+
+dataset <- data_indicator %>%
+  mutate(easr_first = numerator*epop/denominator) %>% # easr population
+  # Converting Infinites to NA and NA's to 0s to allow proper functioning
+  na_if(Inf) %>% # Caused by a denominator of 0 in an age group with numerator >0
+  mutate_at(c("easr_first"), ~replace(., is.na(.), 0))
+
+
+# aggregating by year, code and time
+dataset %<>% subset(select = -c(age_grp)) %>%
+  group_by(year, sex_grp) %>% summarise_all(sum, na.rm =T) %>% ungroup() %>%
+  mutate(epop_total=case_when(sex_grp=="All" ~ epop_total[1], TRUE~epop_total[2]),
+         easr = easr_first/epop_total, # easr calculation
+         rate = easr * 100000) %>%  # rate calculation
+ select(-c(easr_first, epop_total, easr, epop))
+
+
+
+
+
+easr_circ_system_deaths <- create_rates(dataset = test_deaths, epop_total = 100000, sex_grp = T)
+
+easr_circ_system_deaths2 <- create_rates(dataset = test_deaths, epop_total = 200000, sex_grp = F)
