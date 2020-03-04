@@ -80,7 +80,6 @@ circulatory_deaths_0to64 <-circulatory_deaths %>% subset(as.numeric(age_grp)>=14
 saveRDS(circulatory_deaths, file=paste0(data_folder, 'Prepared Data/circulatory deaths_65andover_raw.rds'))
 
 
-
 ###############################################.
 ## Part 3 - Call function to calculate rates ----
 ###############################################.
