@@ -86,9 +86,9 @@ create_rates <- function(filename, pop, epop_total, ind_id) {
 # Making final dataset available outside the function
 final_result <<- data_shiny
 
-# Save RDS file for checking
-saveRDS(data_shiny, file = paste0(data_folder, "Data to be checked/",ind_id,"_",filename, ".rds"))
-
+# Save csv
+#saveRDS(data_shiny, file = paste0(data_folder, "Data to be checked/",ind_id,"_",filename, ".rds"))
+write_csv(data_shiny, path = paste0(data_folder, "Data to be checked/",ind_id,"_",filename, ".csv"))
 
 }
 
