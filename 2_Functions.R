@@ -77,20 +77,70 @@ create_rates <- function(filename, pop, epop_total, ind_id) {
     select(-c(easr_first, epop_total, easr, epop))
  
 # Preparing data for Shiny tool
-  data_shiny <- data_indicator %>%
-    mutate(ind_id=ind_id,
-           country="Scotland") %>%
-    rename(value=rate, sex=sex_grp) %>%
+  data_indicator %<>%
+    mutate(ind_id = ind_id, country = "Scotland") %>%
+    rename(value = rate, sex = sex_grp) %>%
     select(c(year, value, country, sex, ind_id))
 
 # Making final dataset available outside the function
-final_result <<- data_shiny
+final_result <<- data_indicator
 
 # Save csv
-#saveRDS(data_shiny, file = paste0(data_folder, "Data to be checked/",ind_id,"_",filename, ".rds"))
-write_csv(data_shiny, path = paste0(data_folder, "Data to be checked/",ind_id,"_",filename, ".csv"))
+saveRDS(data_indicator, file = paste0(data_folder, "Data to be checked/",ind_id,"_",filename, ".rds"))
+write_csv(data_indicator, path = paste0(data_folder, "Data to be checked/",ind_id,"_",filename, ".csv"))
 
 }
 
+# This function extracts the deaths data and saves it formatted as raw
+extract_deaths <- function(diag, filename, age064 = F, plus65 = F) {
+  #Extracting deaths of Scottish residents, with valid sex and age with an specific diagnosis
+  # Deaths for scottish residents are coded as (XS)
+  deaths_extract <- tbl_df(dbGetQuery(channel, statement=paste0(
+ "SELECT count(*) n, year_of_registration year, age, sex sex_grp
+ FROM ANALYSIS.GRO_DEATHS_C 
+ WHERE date_of_registration between '1 January 2000' and '31 December 2018'
+    AND age is not NULL
+    AND sex <> 9
+    AND country_of_residence='XS'
+    AND regexp_like(underlying_cause_of_death,'", diag, "')
+ GROUP BY year_of_registration, age, sex "))) %>%
+    setNames(tolower(names(.))) %>% #variables to lower case
+    create_agegroups() %>% 
+    mutate(sex_grp = recode(sex_grp, "1" = "Male", "2" = "Female"))
+  
+  # deaths by gender 
+  deaths_sex <- circulatory_deaths_extract %>%
+    group_by(year, age_grp, sex_grp) %>% summarise(n =sum(n)) %>% ungroup()
+  
+  # deaths for all
+  deaths_all <- circulatory_deaths_sex %>%
+    group_by(year, age_grp) %>%
+    summarise(n =sum(n)) %>% mutate(sex_grp = "All") %>% ungroup()
+  
+  #combine datasets
+  deaths <- rbind(deaths_sex, deaths_all) %>%rename(numerator = n)
+  
+  final_deaths_extract <<- deaths
+  
+  # Saving files
+  # All Ages
+  saveRDS(deaths, file=paste0(data_folder, 'Prepared Data/', filename, '_deaths_allages_raw.rds'))
+  print(paste0("Saved file ", 'Prepared Data/', filename, '_deaths_allages_raw.rds'))
+  
+  #  Ages 0 to 64 years
+  if (age064 == T) {
+    saveRDS(deaths %>% subset(as.numeric(age_grp)<=13), 
+            file=paste0(data_folder, 'Prepared Data/', filename, '_deaths_0to64_raw.rds'))
+    
+    print(paste0("Saved file ", 'Prepared Data/', filename, '_deaths_0to64r_raw.rds'))
+  }
+  #  Ages 65+ years
+  if (plus65 == T) {
+    saveRDS(deaths %>% subset(as.numeric(age_grp)>=14), 
+            file=paste0(data_folder, 'Prepared Data/', filename, '_deaths_65andover_raw.rds'))
+    
+    print(paste0("Saved file ", 'Prepared Data/', filename, '_deaths_65andover_raw.rds'))
+  }
+}
 
 
