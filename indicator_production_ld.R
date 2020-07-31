@@ -16,6 +16,7 @@ library(dplyr) # for data manipulation
 library(tidyr) # for data manipulation
 library(readr) # writing csv's
 library(magrittr) # for other pipe operators
+library(odbc)
 
 
 #pop_lookup <- "/PHI_conf/ScotPHO/HfA/Data/Lookups/Pops/"
@@ -32,35 +33,7 @@ channel <- suppressWarnings(dbConnect(odbc(),  dsn="SMRA",
                                       uid=.rs.askForPassword("SMRA Username:"), 
                                       pwd=.rs.askForPassword("SMRA Password:")))
 
-# SQL query for drug deaths 2006-2018
-# Deaths for scottish residents are coded as (XS)
-circulatory_deaths_extract <- tbl_df(dbGetQuery(channel, statement=
-                                              "SELECT year_of_registration year, age, SEX sex_grp, UNDERLYING_CAUSE_OF_DEATH cod1, POSTCODE pc7
-                                               FROM ANALYSIS.GRO_DEATHS_C 
-                                               WHERE date_of_registration between '1 January 2000' and '31 December 2018'
-                                               AND age is not NULL
-                                               AND sex <> 9
-                                               AND country_of_residence='XS'
-                                               AND regexp_like(underlying_cause_of_death,'^I[00-99]')
-                                               ")) %>%
-  setNames(tolower(names(.))) %>% #variables to lower case
-  create_agegroups() %>% 
-  mutate(sex_grp = recode(sex_grp, "1" = "Male", "2" = "Female"))
-
-# deaths by gender 
-circulatory_deaths_sex <- circulatory_deaths_extract %>%
-  group_by(year, age_grp, sex_grp) %>% count() %>% #aggregating
-  ungroup()
-
-# deaths for all
-circulatory_deaths_all <- circulatory_deaths_sex %>%
-  group_by(year, age_grp) %>%
-  summarise(n =sum(n)) %>% mutate(sex_grp = "All") %>%
-  ungroup()
-
-#combine datasets
-circulatory_deaths <- rbind(circulatory_deaths_sex,circulatory_deaths_all) %>%
-  rename(numerator = n)
+extract_deaths(diag = "^I[00-99]", filename = "circulatory", age064 = F, plus65 = F)
 
 
 ###############################################.
@@ -68,16 +41,7 @@ circulatory_deaths <- rbind(circulatory_deaths_sex,circulatory_deaths_all) %>%
 ###############################################.
 
 
-# Circulatory deaths - All Ages
-saveRDS(circulatory_deaths, file=paste0(data_folder, 'Prepared Data/circulatory deaths_allages_raw.rds'))
 
-# Circulatory deaths - Ages 0 to 64 years
-circulatory_deaths_0to64 <-circulatory_deaths %>% subset(as.numeric(age_grp)<=13)
-saveRDS(circulatory_deaths, file=paste0(data_folder, 'Prepared Data/circulatory deaths_0to64_raw.rds'))
-
-# Circulatory deaths - Ages 65+ years
-circulatory_deaths_0to64 <-circulatory_deaths %>% subset(as.numeric(age_grp)>=14)
-saveRDS(circulatory_deaths, file=paste0(data_folder, 'Prepared Data/circulatory deaths_65andover_raw.rds'))
 
 
 ###############################################.
