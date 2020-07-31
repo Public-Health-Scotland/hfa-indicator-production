@@ -32,7 +32,7 @@ create_agegroups <- function(dataset) {
 #Function to create population file from HB population estimates (could use open date platform at some point?)
 create_pop <- function(lower, upper, name) {
   
-  scot_pop_sex <- readRDS('/conf/linkage/output/lookups/Unicode/Populations/Estimates/HB2019_pop_est_1981_2018.rds') %>%
+  scot_pop_sex <- readRDS('/conf/linkage/output/lookups/Unicode/Populations/Estimates/HB2019_pop_est_1981_2019.rds') %>%
     setNames(tolower(names(.))) %>% # variables to lower case
     subset(year > 1999 & year <= 2018) %>%
     subset(age >= lower & age <= upper) %>% #selecting age of interest
