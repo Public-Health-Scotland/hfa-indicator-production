@@ -6,6 +6,7 @@
 # Deal in some way with only-female indicators, so they don't have the male rows 
 # (cervix uteri cancer)
 # Deal with all causes deaths
+# What to do with small numbers 0 to 4 and 5 to 19
 
 ###############################################.
 ## Packages/Filepaths ----
@@ -55,7 +56,7 @@ extract_deaths(diag = "^J", filename = "respiratory", age064 = TRUE, plus65 = TR
 # Bronchitis/emphysema/asthma
 extract_deaths(diag = "^J4[0-6]", filename = "bronch_asthma", age064 = TRUE)
 # Diseases of digestive system
-extract_deaths(diag = "^K", filename = "digestive", age064 = TRUE, plus65 = TRUE)
+extract_deaths(diag = "^K", filename = "digestive", age064 = TRUE, plus65 = TRUE, age3069 = T)
 # Chronic liver disease and cirrhosis
 extract_deaths(diag = "^K7[034]", filename = "cld_cirrhosis", age064 = TRUE)
 # Endocrine, nutritional and metabolic diseases
@@ -68,6 +69,22 @@ extract_deaths(diag = "^D[567]", filename = "blood", age064 = TRUE)
 extract_deaths(diag = "^F|^G|^H", filename = "mh_senses", age064 = TRUE, plus65 = TRUE) 
 # Disease of genitourinary system
 extract_deaths(diag = "^N", filename = "genitourinary", age064 = TRUE)
+# Symptoms, signs and ill-defined conditions
+extract_deaths(diag = "^R[0-46-9]|^R5[0-35-9]", filename = "ill_defined", 
+               age064 = TRUE, plus65 = TRUE) 
+# Tuberculosis 
+extract_deaths(diag = "^A1[5-9]|B90", filename = "tuberculosis")
+# Diarrhoeal diseases, under 5 years 
+extract_deaths(diag = "^A0", filename = "diarrhea", age04 = TRUE)
+# Acute respiratory infections, pneumonia and influenza, under 5 years
+extract_deaths(diag = "^J[01]|J2[012]", filename = "resp_infect", age04 = TRUE)
+# Selected alcohol-related causes
+extract_deaths(diag = "^C15|^C32|^F10|^K7[0346]|^V|^W|^X|^Y", filename = "alcohol")
+# Selected smoking-related causes
+extract_deaths(diag = "^C0|^C1[0-5]|^C3[234]|^I2[0-5]|^I6[0-9]|^J4[0-7]", 
+               filename = "smoking")
+# Major non-communicable diseases, 30-69 years
+extract_deaths(diag = "^I|^C|^E1[0-4]|^J4[0-7]", filename = "non_communic", age3069 = T)
 
 ###############################################.
 ## Part 2 - Call function to calculate rates ----
@@ -139,6 +156,7 @@ create_rates(filename = "bronch_asthma_deaths_0to64", pop="0to64", epop_total = 
 create_rates(filename = "digestive_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_227")
 create_rates(filename = "digestive_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_230")
 create_rates(filename = "digestive_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_233")
+create_rates(filename = "digestive_deaths_30to69", pop="30to69", epop_total = 52500, ind_id="HFA_302")
 # Chronic liver disease and cirrhosis
 create_rates(filename = "cld_cirrhosis_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_236")
 create_rates(filename = "cld_cirrhosis_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_239")
@@ -158,9 +176,21 @@ create_rates(filename = "mh_senses_deaths_65andover", pop="65+", epop_total = 19
 # Disease of genitourinary system
 create_rates(filename = "genitourinary_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_269")
 create_rates(filename = "genitourinary_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_272")
+# Symptoms, signs and ill-defined conditions
+create_rates(filename = "ill_defined_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_275")
+create_rates(filename = "ill_defined_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_278")
+create_rates(filename = "ill_defined_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_281")
+# Tuberculosis
+create_rates(filename = "tuberculosis_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_284")
+# Diarrhoeal diseases, under 5 years
+create_rates(filename = "diarrhea_deaths_0to4", pop="0to4", epop_total = 5000, ind_id="HFA_287")
+# Acute respiratory infections, pneumonia and influenza, under 5 years
+create_rates(filename = "resp_infect_deaths_0to4", pop="0to4", epop_total = 5000, ind_id="HFA_290")
+# Selected alcohol-related causes
+create_rates(filename = "alcohol_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_293")
+# Selected smoking-related causes
+create_rates(filename = "smoking_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_296")
+# Major non-communicable diseases, 30-69 years
+create_rates(filename = "non_communic_deaths_30to69", pop="30to69", epop_total = 52500, ind_id="HFA_299")
 
-
-
-
-
-
+##END
