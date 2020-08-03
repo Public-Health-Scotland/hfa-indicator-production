@@ -106,7 +106,8 @@ saveRDS(data_indicator, file = paste0(data_folder, "Data to be checked/",ind_id,
 # diag: diagnosis of the main cause of death to be extracted
 # filename: name of the file to be created
 # age064, plus65: parameters to create particular age cuts as well as the all ages one
-extract_deaths <- function(diag, filename, age064 = F, plus65 = F, age04 = F, age519= F) {
+extract_deaths <- function(diag, filename, age064 = F, plus65 = F, age04 = F, 
+                           age519 = F, age3069 = F) {
 
     # If all cause deaths, no diagnosis selected
   diag_query <- case_when(diag == "All" ~ " ",
@@ -115,17 +116,20 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F, age04 = F, ag
   #Extracting deaths of Scottish residents, with valid sex and age with an specific diagnosis
   # Deaths for scottish residents are coded as (XS)
   deaths_extract <- tbl_df(dbGetQuery(channel, statement=paste0(
- "SELECT count(*) n, year_of_registration year, age, sex sex_grp
+ "SELECT count(*) n, year_of_registration year, age, sex sex_grp, underlying_cause_of_death cod
  FROM ANALYSIS.GRO_DEATHS_C 
  WHERE date_of_registration between '1 January 2000' and '31 December 2019'
     AND age is not NULL
     AND sex <> 9
     AND country_of_residence = 'XS'
     ", diag_query, "
- GROUP BY year_of_registration, age, sex "))) %>%
+ GROUP BY year_of_registration, age, sex, underlying_cause_of_death "))) %>%
     setNames(tolower(names(.))) %>% #variables to lower case
     create_agegroups() %>% 
     mutate(sex_grp = recode(sex_grp, "1" = "Male", "2" = "Female"))
+  
+  list_diag <- as.vector(sort(unique(deaths_extract$cod)))
+  print(paste("List of diagnosis extracted:", paste(list_diag, collapse = ", ")))
   
   # deaths by gender 
   deaths_extract %<>% group_by(year, age_grp, sex_grp) %>% 
@@ -166,6 +170,13 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F, age04 = F, ag
             file=paste0(data_folder, 'Prepared Data/', filename, '_deaths_5to19_raw.rds'))
     
     print(paste0("Saved file ", 'Prepared Data/', filename, '_deaths_5to19_raw.rds'))
+  }
+  #  Ages 30 to 69 years
+  if (age3069 == T) {
+    saveRDS(deaths %>% subset(between(as.numeric(age_grp), 7, 14)), 
+            file=paste0(data_folder, 'Prepared Data/', filename, '_deaths_30to69_raw.rds'))
+    
+    print(paste0("Saved file ", 'Prepared Data/', filename, '_deaths_30to69_raw.rds'))
   }
   #  Ages 65+ years
   if (plus65 == T) {
