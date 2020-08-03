@@ -31,32 +31,36 @@ create_agegroups <- function(dataset) {
 
 
 # Function to calculate age sex standardized rates
-
 # Parameters:
 # filename : name of indicator being produced
 # pop: specify which population (e.g. allages, 65+, 0to64 to ensure populations match)
-# epop_total: figure to use for total european standard pop
+# epop_total: figure to use for total european standard pop (use the figure for one gender only)
 # ind_id: HFA indicator number
 
 create_rates <- function(filename, pop, epop_total, ind_id) {
   
   #read in required population file
-  pop_lookup <-readRDS(paste0(lookups,"Population/scot_pop_",pop,".rds"))
+  pop_lookup <- readRDS(paste0(lookups,"Population/scot_pop_",pop,".rds"))
   
   #read in indicator data file
-  data_indicator <-readRDS(paste0(data_folder,"Prepared Data/",filename,"_raw.rds"))
+  data_indicator <- readRDS(paste0(data_folder,"Prepared Data/",filename,"_raw.rds"))
   
   #full join to add population
-  data_indicator <- full_join(x = data_indicator, y = pop_lookup, by = c("year", "sex_grp", "age_grp"))
+  data_indicator <- full_join(x = data_indicator, y = pop_lookup, 
+                              by = c("year", "sex_grp", "age_grp"))
   
+  browser()
+
   #add epop (currently no indicators which don't include full 5 year ageband epop)
-  data_indicator$epop <- recode(as.character(data_indicator$age_grp),
-                                "1" = 5000, "2" = 5500, "3" = 5500, "4" = 5500, 
-                                "5" = 6000, "6" = 6000, "7" = 6500, "8" = 7000, 
-                                "9" = 7000, "10" = 7000, "11" =7000, "12" = 6500, 
-                                "13" = 6000, "14" = 5500, "15" = 5000,
-                                "16" = 4000, "17" = 2500, "18" = 1500, "19" = 1000)
-  
+  data_indicator %<>%
+    mutate(epop = recode(as.character(age_grp),
+                         "1" = 5000, "2" = 5500, "3" = 5500, "4" = 5500, 
+                         "5" = 6000, "6" = 6000, "7" = 6500, "8" = 7000, 
+                         "9" = 7000, "10" = 7000, "11" =7000, "12" = 6500, 
+                         "13" = 6000, "14" = 5500, "15" = 5000,
+                         "16" = 4000, "17" = 2500, "18" = 1500, "19" = 1000),
+           # Epop multiplied by 2 to obtain right one for "All"
+           epop = case_when(sex_grp == "All" ~ epop*2, T ~ epop))
   
   # Calculating individual easr and variance
   data_indicator %<>%
@@ -71,7 +75,8 @@ create_rates <- function(filename, pop, epop_total, ind_id) {
     group_by(year, sex_grp) %>% summarise_all(sum, na.rm =T) %>% ungroup() 
   
   data_indicator %<>%
-    mutate(epop_total=epop_total,
+    # epop total population multiplied by 2 for "All" to obtain right number
+    mutate(epop_total=case_when(sex_grp == "All" ~ epop_total*2, T ~ epop_total),
            easr = easr_first/epop_total, # easr calculation
            rate = easr * 100000) %>%  # rate calculation
     select(-c(easr_first, epop_total, easr, epop))
@@ -91,7 +96,15 @@ write_csv(data_indicator, path = paste0(data_folder, "Data to be checked/",ind_i
 
 }
 
+###############################################.
+## Function to extract deaths data ----
+###############################################.
+
 # This function extracts the deaths data and saves it formatted as raw
+# Parameters:
+# diag: diagnosis of the main cause of death to be extracted
+# filename: name of the file to be created
+# age064, plus65: parameters to create particular age cuts as well as the all ages one
 extract_deaths <- function(diag, filename, age064 = F, plus65 = F) {
   #Extracting deaths of Scottish residents, with valid sex and age with an specific diagnosis
   # Deaths for scottish residents are coded as (XS)
@@ -109,16 +122,16 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F) {
     mutate(sex_grp = recode(sex_grp, "1" = "Male", "2" = "Female"))
   
   # deaths by gender 
-  deaths_sex <- circulatory_deaths_extract %>%
-    group_by(year, age_grp, sex_grp) %>% summarise(n =sum(n)) %>% ungroup()
+  deaths_extract %<>% group_by(year, age_grp, sex_grp) %>% 
+    summarise(n =sum(n)) %>% ungroup()
   
   # deaths for all
-  deaths_all <- circulatory_deaths_sex %>%
+  deaths_all <- deaths_extract %>%
     group_by(year, age_grp) %>%
     summarise(n =sum(n)) %>% mutate(sex_grp = "All") %>% ungroup()
   
   #combine datasets
-  deaths <- rbind(deaths_sex, deaths_all) %>%rename(numerator = n)
+  deaths <- rbind(deaths_extract, deaths_all) %>% rename(numerator = n)
   
   final_deaths_extract <<- deaths
   
