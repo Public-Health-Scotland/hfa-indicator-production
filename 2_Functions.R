@@ -3,17 +3,23 @@
 ###############################################.
 ## File Paths ----
 ###############################################.
-
-
 data_folder <- "/PHI_conf/ScotPHO/HfA/Data/"
 lookups <- "/PHI_conf/ScotPHO/HfA/Data/Lookups/"
+
+###############################################.
+## Packages ----
+###############################################.
+library(dplyr) # for data manipulation
+library(tidyr) # for data manipulation
+library(readr) # writing csv's
+library(magrittr) # for other pipe operators
+library(odbc)
 
 
 ###############################################.
 ## Functions ----
 ###############################################.
-
-
+###############################################.
 # Age groups
 #Function to create age groups needed for standardization
 
@@ -29,7 +35,7 @@ create_agegroups <- function(dataset) {
 
 
 
-
+###############################################.
 # Function to calculate age sex standardized rates
 # Parameters:
 # filename : name of indicator being produced
@@ -49,8 +55,6 @@ create_rates <- function(filename, pop, epop_total, ind_id) {
   data_indicator <- full_join(x = data_indicator, y = pop_lookup, 
                               by = c("year", "sex_grp", "age_grp"))
   
-  browser()
-
   #add epop (currently no indicators which don't include full 5 year ageband epop)
   data_indicator %<>%
     mutate(epop = recode(as.character(age_grp),
@@ -92,14 +96,11 @@ final_result <<- data_indicator
 
 # Save csv
 saveRDS(data_indicator, file = paste0(data_folder, "Data to be checked/",ind_id,"_",filename, ".rds"))
-write_csv(data_indicator, path = paste0(data_folder, "Data to be checked/",ind_id,"_",filename, ".csv"))
 
 }
 
 ###############################################.
-## Function to extract deaths data ----
-###############################################.
-
+# Function to extract deaths data 
 # This function extracts the deaths data and saves it formatted as raw
 # Parameters:
 # diag: diagnosis of the main cause of death to be extracted
@@ -111,10 +112,10 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F) {
   deaths_extract <- tbl_df(dbGetQuery(channel, statement=paste0(
  "SELECT count(*) n, year_of_registration year, age, sex sex_grp
  FROM ANALYSIS.GRO_DEATHS_C 
- WHERE date_of_registration between '1 January 2000' and '31 December 2018'
+ WHERE date_of_registration between '1 January 2000' and '31 December 2019'
     AND age is not NULL
     AND sex <> 9
-    AND country_of_residence='XS'
+    AND country_of_residence = 'XS'
     AND regexp_like(underlying_cause_of_death,'", diag, "')
  GROUP BY year_of_registration, age, sex "))) %>%
     setNames(tolower(names(.))) %>% #variables to lower case
@@ -123,12 +124,12 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F) {
   
   # deaths by gender 
   deaths_extract %<>% group_by(year, age_grp, sex_grp) %>% 
-    summarise(n =sum(n)) %>% ungroup()
+    summarise(n = sum(n, na.rm = T)) %>% ungroup()
   
   # deaths for all
   deaths_all <- deaths_extract %>%
     group_by(year, age_grp) %>%
-    summarise(n =sum(n)) %>% mutate(sex_grp = "All") %>% ungroup()
+    summarise(n = sum(n, na.rm = T)) %>% mutate(sex_grp = "All") %>% ungroup()
   
   #combine datasets
   deaths <- rbind(deaths_extract, deaths_all) %>% rename(numerator = n)
@@ -156,4 +157,28 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F) {
   }
 }
 
+###############################################.
+# Function to create population file from HB population estimates (could use open date platform at some point?)
+create_pop <- function(lower, upper, name) {
+  
+  scot_pop_sex <- readRDS('/conf/linkage/output/lookups/Unicode/Populations/Estimates/HB2019_pop_est_1981_2019.rds') %>%
+    setNames(tolower(names(.))) %>% # variables to lower case
+    subset(age >= lower & age <= upper) %>% #selecting age of interest
+    filter(year>=2000) %>% 
+    mutate(sex_grp = case_when(sex==1 ~ "Male", sex== 2 ~ "Female", TRUE ~"Other")) %>%
+    #rename("sex_grp" = "sex") %>%
+    create_agegroups() %>%
+    group_by(age_grp, sex_grp, year) %>% 
+    summarise(denominator =sum(pop)) %>% ungroup()
+  
+  scot_pop_all <- scot_pop_sex %>%
+    group_by(age_grp, year) %>%
+    summarise(denominator=sum(denominator)) %>% ungroup() %>%
+    mutate(sex_grp="All")
+  
+  scot_pop <- bind_rows(scot_pop_all,scot_pop_sex)
+  
+  saveRDS(scot_pop, file=paste0(lookups,'Population/scot_pop_', name,'.rds'))
+} 
 
+##END
