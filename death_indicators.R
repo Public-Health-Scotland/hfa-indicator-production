@@ -47,7 +47,7 @@ extract_deaths(diag = "^X8[5-9]|^X9|^Y0", filename = "homicide", age064 = TRUE, 
 # Transport vehicle accidents
 extract_deaths(diag = "^V", filename = "transport_acc")
 # All causes deaths
-extract_deaths(diag = "", filename = "all_cause", age064 = TRUE, plus65 = TRUE)
+extract_deaths(diag = "All", filename = "all_cause", age064 = TRUE, plus65 = TRUE)
 # Infectious and parasitic diseases
 extract_deaths(diag = "^A|^B", filename = "inf_parasite", age064 = TRUE, plus65 = TRUE)
 

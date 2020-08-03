@@ -107,6 +107,11 @@ saveRDS(data_indicator, file = paste0(data_folder, "Data to be checked/",ind_id,
 # filename: name of the file to be created
 # age064, plus65: parameters to create particular age cuts as well as the all ages one
 extract_deaths <- function(diag, filename, age064 = F, plus65 = F, age04 = F, age519= F) {
+
+    # If all cause deaths, no diagnosis selected
+  diag_query <- case_when(diag == "All" ~ " ",
+                          T ~ paste0("AND regexp_like(underlying_cause_of_death,'", diag, "')"))
+  
   #Extracting deaths of Scottish residents, with valid sex and age with an specific diagnosis
   # Deaths for scottish residents are coded as (XS)
   deaths_extract <- tbl_df(dbGetQuery(channel, statement=paste0(
@@ -116,7 +121,7 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F, age04 = F, ag
     AND age is not NULL
     AND sex <> 9
     AND country_of_residence = 'XS'
-    AND regexp_like(underlying_cause_of_death,'", diag, "')
+    ", diag_query, "
  GROUP BY year_of_registration, age, sex "))) %>%
     setNames(tolower(names(.))) %>% #variables to lower case
     create_agegroups() %>% 
