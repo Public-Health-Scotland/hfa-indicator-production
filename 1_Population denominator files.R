@@ -14,6 +14,7 @@ create_pop(lower = 0, upper = 64, name = "0to64")
 create_pop(lower = 65, upper = 200, name = "65+")
 create_pop(lower = 0, upper = 4, name = "0to4")
 create_pop(lower = 5, upper = 19, name = "5to19")
+create_pop(lower = 30, upper = 69, name = "30to69")
 
 ##END
 
