@@ -12,6 +12,8 @@ source("2_Functions.R") #Normal indicator functions
 create_pop(lower = 0, upper = 200, name = "allages")
 create_pop(lower = 0, upper = 64, name = "0to64")
 create_pop(lower = 65, upper = 200, name = "65+")
+create_pop(lower = 0, upper = 4, name = "0to4")
+create_pop(lower = 5, upper = 19, name = "5to19")
 
 ##END
 
