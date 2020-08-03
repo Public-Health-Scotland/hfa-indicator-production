@@ -50,7 +50,24 @@ extract_deaths(diag = "^V", filename = "transport_acc")
 extract_deaths(diag = "All", filename = "all_cause", age064 = TRUE, plus65 = TRUE)
 # Infectious and parasitic diseases
 extract_deaths(diag = "^A|^B", filename = "inf_parasite", age064 = TRUE, plus65 = TRUE)
-
+# Diseases of respiratory system
+extract_deaths(diag = "^J", filename = "respiratory", age064 = TRUE, plus65 = TRUE)
+# Bronchitis/emphysema/asthma
+extract_deaths(diag = "^J4[0-6]", filename = "bronch_asthma", age064 = TRUE)
+# Diseases of digestive system
+extract_deaths(diag = "^K", filename = "digestive", age064 = TRUE, plus65 = TRUE)
+# Chronic liver disease and cirrhosis
+extract_deaths(diag = "^K7[034]", filename = "cld_cirrhosis", age064 = TRUE)
+# Endocrine, nutritional and metabolic diseases
+extract_deaths(diag = "^E", filename = "endocrine", age064 = TRUE)
+# Diabetes
+extract_deaths(diag = "^E1[0-4]", filename = "diabetes", age064 = TRUE)
+# Diseases of the blood, blood forming organs and certain immunity disorders
+extract_deaths(diag = "^D[567]", filename = "blood", age064 = TRUE)
+# Mental disorders, diseases of nervous system and sense organs
+extract_deaths(diag = "^F|^G|^H", filename = "mh_senses", age064 = TRUE, plus65 = TRUE) 
+# Disease of genitourinary system
+extract_deaths(diag = "^N", filename = "genitourinary", age064 = TRUE)
 
 ###############################################.
 ## Part 2 - Call function to calculate rates ----
@@ -104,10 +121,46 @@ create_rates(filename = "homicide_deaths_65andover", pop="65+", epop_total = 195
 # Transport vehicle accidents
 create_rates(filename = "transport_acc_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_191")
 # All causes deaths
-create_rates(filename = "all_cause_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_197")
-create_rates(filename = "all_cause_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_194")
+create_rates(filename = "all_cause_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_194")
+create_rates(filename = "all_cause_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_197")
 create_rates(filename = "all_cause_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_200")
 # Infectious and parasitic diseases
-create_rates(filename = "inf_parasite_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_206")
-create_rates(filename = "inf_parasite_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_203")
+create_rates(filename = "inf_parasite_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_203")
+create_rates(filename = "inf_parasite_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_206")
 create_rates(filename = "inf_parasite_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_209")
+# Diseases of respiratory system
+create_rates(filename = "respiratory_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_212")
+create_rates(filename = "respiratory_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_215")
+create_rates(filename = "respiratory_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_218")
+# Bronchitis/emphysema/asthma
+create_rates(filename = "bronch_asthma_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_221")
+create_rates(filename = "bronch_asthma_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_224")
+# Diseases of digestive system
+create_rates(filename = "digestive_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_227")
+create_rates(filename = "digestive_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_230")
+create_rates(filename = "digestive_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_233")
+# Chronic liver disease and cirrhosis
+create_rates(filename = "cld_cirrhosis_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_236")
+create_rates(filename = "cld_cirrhosis_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_239")
+# Endocrine, nutritional and metabolic diseases
+create_rates(filename = "endocrine_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_242")
+create_rates(filename = "endocrine_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_245")
+# Diabetes
+create_rates(filename = "diabetes_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_248")
+create_rates(filename = "diabetes_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_251")
+# Diseases of the blood, blood forming organs and certain immunity disorders
+create_rates(filename = "blood_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_254")
+create_rates(filename = "blood_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_257")
+# Mental disorders, diseases of nervous system and sense organs
+create_rates(filename = "mh_senses_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_260")
+create_rates(filename = "mh_senses_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_263")
+create_rates(filename = "mh_senses_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_266")
+# Disease of genitourinary system
+create_rates(filename = "genitourinary_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_269")
+create_rates(filename = "genitourinary_deaths_0to64", pop="0to64", epop_total = 81500, ind_id="HFA_272")
+
+
+
+
+
+
