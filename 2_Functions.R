@@ -106,7 +106,7 @@ saveRDS(data_indicator, file = paste0(data_folder, "Data to be checked/",ind_id,
 # diag: diagnosis of the main cause of death to be extracted
 # filename: name of the file to be created
 # age064, plus65: parameters to create particular age cuts as well as the all ages one
-extract_deaths <- function(diag, filename, age064 = F, plus65 = F) {
+extract_deaths <- function(diag, filename, age064 = F, plus65 = F, age04 = F, age519= F) {
   #Extracting deaths of Scottish residents, with valid sex and age with an specific diagnosis
   # Deaths for scottish residents are coded as (XS)
   deaths_extract <- tbl_df(dbGetQuery(channel, statement=paste0(
@@ -143,10 +143,24 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F) {
   
   #  Ages 0 to 64 years
   if (age064 == T) {
-    saveRDS(deaths %>% subset(as.numeric(age_grp)<=13), 
+    saveRDS(deaths %>% subset(as.numeric(age_grp) <= 13), 
             file=paste0(data_folder, 'Prepared Data/', filename, '_deaths_0to64_raw.rds'))
     
     print(paste0("Saved file ", 'Prepared Data/', filename, '_deaths_0to64r_raw.rds'))
+  }
+  #  Ages 0 to 4 years
+  if (age04 == T) {
+    saveRDS(deaths %>% subset(as.numeric(age_grp) == 1), 
+            file=paste0(data_folder, 'Prepared Data/', filename, '_deaths_0to4_raw.rds'))
+    
+    print(paste0("Saved file ", 'Prepared Data/', filename, '_deaths_0to4_raw.rds'))
+  }
+  #  Ages 5 to 19 years
+  if (age519 == T) {
+    saveRDS(deaths %>% subset(between(as.numeric(age_grp), 2, 4)), 
+            file=paste0(data_folder, 'Prepared Data/', filename, '_deaths_5to19_raw.rds'))
+    
+    print(paste0("Saved file ", 'Prepared Data/', filename, '_deaths_5to19_raw.rds'))
   }
   #  Ages 65+ years
   if (plus65 == T) {
