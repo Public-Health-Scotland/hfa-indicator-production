@@ -88,6 +88,7 @@ create_rates <- function(filename, pop, epop_total, ind_id) {
 # Preparing data for Shiny tool
   data_indicator %<>%
     mutate(ind_id = ind_id, country = "Scotland") %>%
+    replace_na(list(rate = 0)) %>%
     rename(value = rate, sex = sex_grp) %>%
     select(c(year, value, country, sex, ind_id))
 
