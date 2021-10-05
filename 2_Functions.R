@@ -118,7 +118,7 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F, age04 = F,
   deaths_extract <- tbl_df(dbGetQuery(channel, statement=paste0(
  "SELECT count(*) n, year_of_registration year, age, sex sex_grp, underlying_cause_of_death cod
  FROM ANALYSIS.GRO_DEATHS_C 
- WHERE date_of_registration between '1 January 2000' and '31 December 2019'
+ WHERE date_of_registration between '1 January 2000' and '31 December 2020'
     AND age is not NULL
     AND sex <> 9
     AND country_of_residence = 'XS'
@@ -191,7 +191,7 @@ extract_deaths <- function(diag, filename, age064 = F, plus65 = F, age04 = F,
 # Function to create population file from HB population estimates (could use open date platform at some point?)
 create_pop <- function(lower, upper, name) {
   
-  scot_pop_sex <- readRDS('/conf/linkage/output/lookups/Unicode/Populations/Estimates/HB2019_pop_est_1981_2019.rds') %>%
+  scot_pop_sex <- readRDS('/conf/linkage/output/lookups/Unicode/Populations/Estimates/HB2019_pop_est_1981_2020.rds') %>%
     setNames(tolower(names(.))) %>% # variables to lower case
     subset(age >= lower & age <= upper) %>% #selecting age of interest
     filter(year>=2000) %>% 
