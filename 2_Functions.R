@@ -6,6 +6,9 @@
 data_folder <- "/PHI_conf/ScotPHO/HfA/Data/"
 lookups <- "/PHI_conf/ScotPHO/HfA/Data/Lookups/"
 
+# Setting file permissions to anyone to allow writing/overwriting of project files
+Sys.umask("006")
+
 ###############################################.
 ## Packages ----
 ###############################################.
