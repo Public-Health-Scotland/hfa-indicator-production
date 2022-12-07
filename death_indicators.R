@@ -89,6 +89,8 @@ extract_deaths(diag = "^I|^C|^E1[0-4]|^J4[0-7]", filename = "non_communic", age3
 ###############################################.
 ## Part 2 - Call function to calculate rates ----
 ###############################################.
+# sex for indicators is All unless commented otherwise.
+
 # Circulatory deaths 
 create_rates(filename = "circulatory_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_101")
 create_rates(filename = "circulatory_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_98")
@@ -110,13 +112,13 @@ create_rates(filename = "trachealung_cancer_deaths_allages", pop="allages", epop
 create_rates(filename = "trachealung_cancer_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_134")
 create_rates(filename = "trachealung_cancer_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_140")
 # Cancer of the cervix uteri deaths 
-create_rates(filename = "cervix_cancer_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_144")
-create_rates(filename = "cervix_cancer_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_143")
-create_rates(filename = "cervix_cancer_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_145")
+create_rates_female(filename = "cervix_cancer_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_144") # female only
+create_rates_female(filename = "cervix_cancer_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_143") # female only
+create_rates_female(filename = "cervix_cancer_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_145") # female only
 # Malignant neoplasm female breast deaths
-create_rates(filename = "breast_cancer_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_147")
-create_rates(filename = "breast_cancer_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_146")
-create_rates(filename = "breast_cancer_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_148")
+create_rates_female(filename = "breast_cancer_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_147") # female only
+create_rates_female(filename = "breast_cancer_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_146") # female only
+create_rates_female(filename = "breast_cancer_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_148") # female only
 # External causes of injury and poisoning deaths
 create_rates(filename = "inj_poison_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_158")
 create_rates(filename = "inj_poison_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_149")
@@ -151,7 +153,7 @@ create_rates(filename = "respiratory_deaths_0to64", pop="0to64", epop_total = 80
 create_rates(filename = "respiratory_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_218")
 # Bronchitis/emphysema/asthma
 create_rates(filename = "bronch_asthma_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_221")
-create_rates(filename = "bronch_asthma_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_224")
+create_rates_by_sex(filename = "bronch_asthma_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_224") # All, female, male
 # Diseases of digestive system
 create_rates(filename = "digestive_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_227")
 create_rates(filename = "digestive_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_230")
@@ -172,7 +174,7 @@ create_rates(filename = "blood_deaths_0to64", pop="0to64", epop_total = 80500, i
 # Mental disorders, diseases of nervous system and sense organs
 create_rates(filename = "mh_senses_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_260")
 create_rates(filename = "mh_senses_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_263")
-create_rates(filename = "mh_senses_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_266")
+create_rates_by_sex(filename = "mh_senses_deaths_65andover", pop="65+", epop_total = 19500, ind_id="HFA_266") # All, female, male
 # Disease of genitourinary system
 create_rates(filename = "genitourinary_deaths_allages", pop="allages", epop_total = 100000, ind_id="HFA_269")
 create_rates(filename = "genitourinary_deaths_0to64", pop="0to64", epop_total = 80500, ind_id="HFA_272")
